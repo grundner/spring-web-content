@@ -33,5 +33,7 @@ dependencies {
 
     compile project(":starter")
 
+//    compile group: 'mysql', name: 'mysql-connector-java', version: '5.1.39'
+
     testImplementation('org.springframework.boot:spring-boot-starter-test')
 }
