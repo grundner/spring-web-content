@@ -5,13 +5,17 @@ package biz.grundner.springframework.web.content.model;
  */
 public abstract class Payload {
 
-    private final String name;
+    private Sequence sequence;
 
-    public String getName() {
-        return name;
+    public Sequence getSequence() {
+        return sequence;
     }
 
-    public Payload(String name) {
-        this.name = name;
+    void setSequence(Sequence sequence) {
+        this.sequence = sequence;
+    }
+
+    public int getOrdinal() {
+        return sequence.getPayloads().indexOf(this);
     }
 }

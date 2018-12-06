@@ -1,24 +1,27 @@
 package biz.grundner.springframework.web.content.model;
 
-import java.util.LinkedHashSet;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * @author Stephan Grundner
  */
 public class Fragment extends Payload {
 
-    private Set<Payload> payloads = new LinkedHashSet<>();
+    private Map<String, Sequence> sequences = new LinkedHashMap<>();
 
-    public Map<String, Payload> getPayloads() {
-        return payloads.stream().collect(Collectors
-                .toMap(Payload::getName, Function.identity()));
+    public Map<String, Sequence> getSequences() {
+        return Collections.unmodifiableMap(sequences);
     }
 
-    public Fragment(String name) {
-        super(name);
+    public boolean appendPayload(String name, Payload payload) {
+        Sequence sequence = sequences.get(name);
+        if (sequence == null) {
+            sequence = new Sequence(name);
+            sequences.put(name, sequence);
+        }
+
+        return sequence.appendPayload(payload);
     }
 }

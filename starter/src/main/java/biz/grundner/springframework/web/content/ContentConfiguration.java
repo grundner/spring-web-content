@@ -2,6 +2,8 @@ package biz.grundner.springframework.web.content;
 
 import biz.grundner.springframework.thumbor.FileLoader;
 import biz.grundner.springframework.thumbor.ThumborRunner;
+import biz.grundner.springframework.web.content.thymeleaf.ContentDialect;
+import biz.grundner.springframework.web.content.xml.DOMPageLoader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.web.ResourceProperties;
@@ -37,12 +39,24 @@ public class ContentConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
+    @ConditionalOnMissingBean(PageLoader.class)
+    protected PageLoader pageLoader() {
+        return new DOMPageLoader();
+    }
+
+    @Bean
     @ConditionalOnMissingBean
     protected ContentProperties contentProperties() {
         ContentProperties contentProperties = new ContentProperties();
         contentProperties.setBasePath(Paths.get("./content"));
 
         return contentProperties;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(PageFileFilter.class)
+    protected PageFileFilter pageFileFilter() {
+        return new RegexPageFileFilter("^.*\\.xml$");
     }
 
     @Bean
@@ -63,5 +77,10 @@ public class ContentConfiguration implements WebMvcConfigurer {
         resourceProperties.setStaticLocations(staticLocations.toArray(new String[] {}));
 
         return resourceProperties;
+    }
+
+    @Bean
+    public ContentDialect contentDialect() {
+        return new ContentDialect();
     }
 }

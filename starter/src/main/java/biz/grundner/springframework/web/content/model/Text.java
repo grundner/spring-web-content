@@ -14,8 +14,4 @@ public class Text extends Payload {
     public void setValue(String value) {
         this.value = value;
     }
-
-    public Text(String name) {
-        super(name);
-    }
 }
