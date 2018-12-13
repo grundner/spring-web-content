@@ -4,20 +4,11 @@ import biz.grundner.springframework.web.content.model.Fragment;
 import biz.grundner.springframework.web.content.model.Page;
 import biz.grundner.springframework.web.content.model.Text;
 import org.apache.commons.collections4.map.AbstractMapDecorator;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.monitor.FileAlterationListener;
-import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
-import org.apache.commons.io.monitor.FileAlterationMonitor;
-import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
-import javax.annotation.PostConstruct;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -28,6 +19,7 @@ import java.util.Map;
 @Service
 public class PageService {
 
+
     @Autowired
     private ContentProperties contentProperties;
 
@@ -37,61 +29,20 @@ public class PageService {
     @Autowired
     private PageLoader pageLoader;
 
-    @Autowired
-    private PageFileFilter pageFileFilter;
+//    @Autowired
+//    private PageFileFilter pageFileFilter;
 
-    public Path getRootPath() {
-        return contentProperties.getBasePath();
-    }
 
     public PageRepository getPageRepository() {
         return pageRepository;
     }
 
-    public Page load(Path file, boolean register) throws IOException {
-        Page page = pageLoader.loadPage(file);
-
-        if (register) {
-            pageRepository.savePage(page);
-        }
-
-        return page;
-    }
-
-    public Page load(File file, boolean register) throws IOException {
-        return load(file.toPath(), register);
-    }
-
     public Page findPageByFile(Path file) throws IOException {
-
-        Page page = pageRepository.findPageByFile(file);
-        if (page == null && Files.exists(file)) {
-            page = load(file,true);
-        }
-
-        return page;
+        return pageRepository.findPageByFile(file);
     }
 
-    public Page findPageByUrl(String url) throws IOException {
-        if (url.startsWith("/")) {
-            url = url.substring(1);
-        }
-
-        Path file = getRootPath().resolve(url + ".xml");
-        if (!Files.exists(file)) {
-            if (!StringUtils.isEmpty(url)) {
-                url += "/";
-            }
-            file = getRootPath().resolve(url + "index.xml");
-        }
-        Page page = findPageByFile(file);
-
-        return page;
-    }
-
-    @Deprecated
-    public Collection<Page> findPagesByFilename(String pattern) {
-        return pageRepository.findPagesByFilename(pattern);
+    public Page findPageByURI(String uri) throws IOException {
+        return pageRepository.findPageByURI(uri);
     }
 
     public Collection<Page> findPagesByType(String type, int limit, int offset) {
@@ -139,33 +90,5 @@ public class PageService {
         return fromFragment(page);
     }
 
-    @PostConstruct
-    private void init() throws IOException {
-        FileAlterationObserver observer = new FileAlterationObserver(getRootPath().toFile());
-        FileAlterationMonitor monitor = new FileAlterationMonitor(5000);
 
-        try {
-            monitor.start();
-            observer.addListener(new FileAlterationListenerAdaptor() {
-                @Override
-                public void onFileCreate(File file) {
-                    onFileChange(file);
-                }
-
-                @Override
-                public void onFileChange(File file) {
-                    if (pageFileFilter.accept(file)) {
-                        try {
-                            load(file, true);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                }
-            });
-            monitor.addObserver(observer);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

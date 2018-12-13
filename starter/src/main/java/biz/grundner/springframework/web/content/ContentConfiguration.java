@@ -53,10 +53,18 @@ public class ContentConfiguration implements WebMvcConfigurer {
         return contentProperties;
     }
 
+//    @Bean
+//    @ConditionalOnMissingBean(PageFileFilter.class)
+//    protected PageFileFilter pageFileFilter() {
+//        return new RegexPageFileFilter("^.*\\.xml$");
+//    }
+
     @Bean
-    @ConditionalOnMissingBean(PageFileFilter.class)
-    protected PageFileFilter pageFileFilter() {
-        return new RegexPageFileFilter("^.*\\.xml$");
+    protected PageRepository pageRepository(ContentProperties contentProperties) {
+        PageRepository pageRepository = new PageRepository();
+        pageRepository.setDirectory(contentProperties.getBasePath());
+
+        return pageRepository;
     }
 
     @Bean

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<h2 th:text="${headline}">Headline</h2>
+
+<h3>[[${$parent.$name}]]</h3>
+
+    <th:block th:each="slide : ${slide}">
+
+        [[${slide}]] <br />
+
+    </th:block>
+</html>

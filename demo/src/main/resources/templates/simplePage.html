@@ -6,5 +6,13 @@
 </head>
 <body>
 <h1 th:text="${title[0]}">Headline</h1>
+
+
+<th:block th:each="section : ${sections[0].$children}">
+
+    <th:block ct:replace="${section}" />
+
+    <hr />
+</th:block>
 </body>
 </html>

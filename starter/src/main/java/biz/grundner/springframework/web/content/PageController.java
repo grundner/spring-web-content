@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Enumeration;
 
 /**
@@ -28,12 +27,11 @@ public class PageController {
 
     @GetMapping("page")
     public String resolve(@RequestParam(name = "file") Path file,
-//                          @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
                           HttpServletRequest request,
                           HttpServletResponse response,
                           Model model) throws IOException {
 
-        Page page = pageService.findPageByFile(Paths.get("./", file.toString()));
+        Page page = pageService.findPageByFile(file);
 
         Enumeration<String> names = request.getParameterNames();
         while (names.hasMoreElements()) {

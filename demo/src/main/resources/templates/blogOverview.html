@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<!--<th:block th_each="page : ${@pageService.findPagesByType('simpleArticle', $limit)}">-->
+<th:block th:each="page : ${#pages.findAllByType('simpleArticle', $limit)}">
+    <a href="#" th:text="${page.title[0]}">Link</a>
+    ...<br />
+</th:block>
+
+</body>
+</html>

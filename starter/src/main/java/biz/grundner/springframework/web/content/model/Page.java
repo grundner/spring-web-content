@@ -1,5 +1,7 @@
 package biz.grundner.springframework.web.content.model;
 
+import org.springframework.core.io.Resource;
+
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 
@@ -9,6 +11,7 @@ import java.time.LocalDateTime;
 public class Page extends Fragment {
 
     private String type;
+    private Resource resource;
     private Path file;
 
     private LocalDateTime created;
@@ -20,6 +23,14 @@ public class Page extends Fragment {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public Resource getResource() {
+        return resource;
+    }
+
+    public void setResource(Resource resource) {
+        this.resource = resource;
     }
 
     public Path getFile() {
