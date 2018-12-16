@@ -4,6 +4,7 @@ import biz.grundner.springframework.web.content.model.Page;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
@@ -13,10 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -36,6 +34,10 @@ public class PageRepository {
 
     private Set<Page> pages = new LinkedHashSet<>();
 
+    public Set<Page> getPages() {
+        return Collections.unmodifiableSet(pages);
+    }
+
     @Deprecated
     public Set<String> getLocations() {
         return locations;
@@ -47,33 +49,14 @@ public class PageRepository {
 
     public void setDirectory(Path directory) {
         if (!directory.isAbsolute()) {
-            try {
-                directory = directory.toAbsolutePath().toRealPath();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            directory = directory.toAbsolutePath().normalize();
         }
+
         this.directory = directory;
     }
 
     public Collection<Page> findAllPages() {
         return Collections.unmodifiableCollection(pages);
-    }
-
-    public boolean savePage(Page page) {
-        return pages.add(page);
-    }
-
-    public String toRelativePath(Path file) {
-
-        if (file.isAbsolute()) {
-//            file = file.relativize(directory);
-            file = directory.relativize(file);
-        }
-
-        String path = file.toString();
-
-        return path;
     }
 
     public Page findPageByURI(String path) {
@@ -86,10 +69,21 @@ public class PageRepository {
         }
 
         String fileName = path + ".xml";
-        return pages.stream().filter(it -> toRelativePath(it.getFile()).equals(fileName)).findFirst().orElse(null);
+        return pages.stream().filter(it -> {
+            Path file = it.getFile();
+            if (file.isAbsolute()) {
+                file = directory.relativize(file);
+            }
+
+            return fileName.equals(file.toString());
+        }).findFirst().orElse(null);
     }
 
     public Page findPageByFile(Path file) {
+        if (!file.isAbsolute()) {
+            return findPageByFile(directory.resolve(file));
+        }
+
         return pages.stream().filter(it -> file.equals(it.getFile())).findFirst().orElse(null);
     }
 
@@ -101,9 +95,9 @@ public class PageRepository {
                 .collect(Collectors.toList());
     }
 
-    @PostConstruct
+    @Scheduled(fixedDelay = 1000 * 10)
     public void refresh() throws IOException {
-        pages.clear();
+        Set<Page> tmp = new HashSet<>(getPages());
 
         Files.walk(directory).forEach(file -> {
             try {
@@ -111,23 +105,40 @@ public class PageRepository {
                 if (Files.isRegularFile(file) && fileName.endsWith(".xml")) {
                     Page page = findPageByFile(file);
                     if (page != null) {
+                        tmp.remove(page);
+
                         BasicFileAttributes attributes = Files.readAttributes(file, BasicFileAttributes.class);
                         LocalDateTime modified = LocalDateTime.ofInstant(attributes.lastModifiedTime().toInstant(), ZoneOffset.UTC);
 
                         if (!page.getModified().equals(modified)) {
                             CollectionUtils.remove(pages, page);
-                            page = pageLoader.loadPage(file);
+                            page = pageLoader.loadPage(directory.resolve(file));
                             CollectionUtils.add(pages, page);
+                            LOG.info("Updated page {}", toString(page));
                         }
 
                     } else {
-                        page = pageLoader.loadPage(file);
-                        pages.add(page);
+                        page = pageLoader.loadPage(directory.resolve(file));
+                        CollectionUtils.add(pages, page);
+                        LOG.info("Created page {}", toString(page));
                     }
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
+
+        tmp.forEach(page -> {
+            CollectionUtils.remove(pages, page);
+            LOG.info("Deleted page {}", toString(page));
+        });
+    }
+
+    private String toString(Page page) {
+        return String.format("%s{type=%s,file=\"%s\"}@%d",
+                Page.class.getName(),
+                page.getType(),
+                page.getFile(),
+                System.identityHashCode(page));
     }
 }

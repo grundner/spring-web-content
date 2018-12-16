@@ -38,6 +38,9 @@ public class Page extends Fragment {
     }
 
     public void setFile(Path file) {
+        if (!file.isAbsolute()) {
+            throw new IllegalArgumentException("file path must be absolute");
+        }
         this.file = file;
     }
 
@@ -56,4 +59,5 @@ public class Page extends Fragment {
     public void setModified(LocalDateTime modified) {
         this.modified = modified;
     }
+
 }

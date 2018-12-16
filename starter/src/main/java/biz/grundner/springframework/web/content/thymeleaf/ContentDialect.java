@@ -1,7 +1,9 @@
 package biz.grundner.springframework.web.content.thymeleaf;
 
+import biz.grundner.springframework.web.content.model.Page;
 import biz.grundner.springframework.web.content.thymeleaf.processor.ComponentIncludeProcessor;
 import biz.grundner.springframework.web.content.thymeleaf.processor.ComponentReplaceProcessor;
+import biz.grundner.springframework.web.content.thymeleaf.processor.FoobarProcessor;
 import org.thymeleaf.context.IExpressionContext;
 import org.thymeleaf.dialect.AbstractProcessorDialect;
 import org.thymeleaf.dialect.IExpressionObjectDialect;
@@ -32,6 +34,7 @@ public class ContentDialect extends AbstractProcessorDialect implements IExpress
         HashSet<IProcessor> processors = new HashSet<>();
         processors.add(createReplaceProcessor());
         processors.add(createIncludeProcessor());
+        processors.add(new FoobarProcessor(PREFIX, getDialectProcessorPrecedence() * 10 + 2));
 
         return processors;
     }
