@@ -2,21 +2,28 @@ package biz.grundner.springframework.web.content;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.nio.file.Path;
-
 /**
  * @author Stephan Grundner
  */
 @ConfigurationProperties(prefix = "content", ignoreUnknownFields = false)
 public class ContentProperties {
 
-    private Path basePath;
+    private String locationPrefix;
+    private String locationSuffix;
 
-    public Path getBasePath() {
-        return basePath;
+    public String getLocationPrefix() {
+        return locationPrefix;
     }
 
-    public void setBasePath(Path basePath) {
-        this.basePath = basePath;
+    public void setLocationPrefix(String locationPrefix) {
+        this.locationPrefix = locationPrefix;
+    }
+
+    public String getLocationSuffix() {
+        return locationSuffix;
+    }
+
+    public void setLocationSuffix(String locationSuffix) {
+        this.locationSuffix = locationSuffix;
     }
 }

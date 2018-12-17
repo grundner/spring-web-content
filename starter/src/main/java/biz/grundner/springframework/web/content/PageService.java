@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -35,10 +34,6 @@ public class PageService {
 
     public PageRepository getPageRepository() {
         return pageRepository;
-    }
-
-    public Page findPageByFile(Path file) throws IOException {
-        return pageRepository.findPageByFile(file);
     }
 
     public Page findPageByURI(String uri) throws IOException {
@@ -90,5 +85,11 @@ public class PageService {
         return fromFragment(page);
     }
 
-
+    public String toString(Page page) {
+        return String.format("%s{type=%s,file=\"%s\"}@%d",
+                Page.class.getName(),
+                page.getType(),
+                page.getResource().toString(),
+                System.identityHashCode(page));
+    }
 }

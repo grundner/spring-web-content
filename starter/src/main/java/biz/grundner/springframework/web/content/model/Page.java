@@ -2,7 +2,6 @@ package biz.grundner.springframework.web.content.model;
 
 import org.springframework.core.io.Resource;
 
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 
 /**
@@ -12,7 +11,6 @@ public class Page extends Fragment {
 
     private String type;
     private Resource resource;
-    private Path file;
 
     private LocalDateTime created;
     private LocalDateTime modified;
@@ -31,17 +29,6 @@ public class Page extends Fragment {
 
     public void setResource(Resource resource) {
         this.resource = resource;
-    }
-
-    public Path getFile() {
-        return file;
-    }
-
-    public void setFile(Path file) {
-        if (!file.isAbsolute()) {
-            throw new IllegalArgumentException("file path must be absolute");
-        }
-        this.file = file;
     }
 
     public LocalDateTime getCreated() {

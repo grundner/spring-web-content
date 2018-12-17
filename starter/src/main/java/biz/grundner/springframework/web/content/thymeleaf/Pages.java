@@ -30,22 +30,22 @@ public class Pages {
 //        return applicationContext.getBean(UrlService.class);
 //    }
 
-    public List<Object> findAllByType(String type, int limit, int offset) {
-        HttpServletRequest request = currentRequest();
-        ApplicationContext applicationContext = RequestContextUtils.findWebApplicationContext(request);
-        PageService pageService = applicationContext.getBean(PageService.class);
-        Collection<Page> pages = pageService.findPagesByType(type, limit, offset);
+//    public List<Object> findAllByType(String type, int limit, int offset) {
+//        HttpServletRequest request = currentRequest();
+//        ApplicationContext applicationContext = RequestContextUtils.findWebApplicationContext(request);
+//        PageService pageService = applicationContext.getBean(PageService.class);
+//        Collection<Page> pages = pageService.findPagesByType(type, limit, offset);
+//
+//        return pages.stream()
+//                .map(pageService::toModel)
+//                .collect(Collectors.toList());
+//    }
 
-        return pages.stream()
-                .map(pageService::toModel)
-                .collect(Collectors.toList());
-    }
+//    public List<Object> findAllByType(String type, int limit) {
+//        return findAllByType(type, limit, 0);
+//    }
 
-    public List<Object> findAllByType(String type, int limit) {
-        return findAllByType(type, limit, 0);
-    }
-
-    public List<Object> findAllByType(String type) {
-        return findAllByType(type, 25);
-    }
+//    public List<Object> findAllByType(String type) {
+//        return findAllByType(type, 25);
+//    }
 }

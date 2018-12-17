@@ -5,6 +5,7 @@ import biz.grundner.springframework.web.content.model.Fragment;
 import biz.grundner.springframework.web.content.model.Page;
 import biz.grundner.springframework.web.content.model.Payload;
 import biz.grundner.springframework.web.content.model.Text;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -16,11 +17,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.io.InputStream;
 
 /**
  * @author Stephan Grundner
@@ -79,18 +76,18 @@ public class DOMPageLoader implements PageLoader {
     }
 
     @Override
-    public Page loadPage(Path file) throws IOException {
+    public Page loadPage(Resource resource) throws IOException {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        try {
+        try (InputStream inputStream = resource.getInputStream()) {
             DocumentBuilder db = dbf.newDocumentBuilder();
-            Document document = db.parse(file.toFile());
+            Document document = db.parse(inputStream);
 
             Page page = (Page) fromNode(document);
-            page.setFile(file);
+            page.setResource(resource);
 
-            BasicFileAttributes attributes = Files.readAttributes(file, BasicFileAttributes.class);
-            page.setCreated(LocalDateTime.ofInstant(attributes.creationTime().toInstant(), ZoneOffset.UTC));
-            page.setModified(LocalDateTime.ofInstant(attributes.lastModifiedTime().toInstant(), ZoneOffset.UTC));
+//            BasicFileAttributes attributes = Files.readAttributes(file, BasicFileAttributes.class);
+//            page.setCreated(LocalDateTime.ofInstant(attributes.creationTime().toInstant(), ZoneOffset.UTC));
+//            page.setModified(LocalDateTime.ofInstant(attributes.lastModifiedTime().toInstant(), ZoneOffset.UTC));
 
             return page;
         } catch (SAXException | ParserConfigurationException e) {

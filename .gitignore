@@ -1,6 +1,7 @@
 .gradle
 /build/
-!gradle/wrapper/gradle-wrapper.jar
+
+gradle/wrapper/gradle-wrapper.jar
 
 ### IntelliJ IDEA ###
 .idea
@@ -9,4 +10,4 @@
 *.ipr
 out/
 
-demo/content/*
+content/**
