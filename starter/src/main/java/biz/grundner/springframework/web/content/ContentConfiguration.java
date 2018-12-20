@@ -4,16 +4,12 @@ import biz.grundner.springframework.web.content.thymeleaf.ContentDialect;
 import biz.grundner.springframework.web.content.xml.DOMPageLoader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.web.ResourceProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author Stephan Grundner
@@ -60,26 +56,17 @@ public class ContentConfiguration implements WebMvcConfigurer {
         return pageRepository;
     }
 
-//    @Bean
-//    @ConditionalOnMissingBean
-//    protected ThumborRunner thumborRunner(ContentProperties contentProperties) {
-//        ThumborRunner thumborRunner = new ThumborRunner();
-//        FileLoader fileLoader = new FileLoader();
-//
-////        TODO Read from config
-//        fileLoader.setRootPath(Paths.get("./content"));
-//        thumborRunner.setLoader(fileLoader);
-//
-//        return thumborRunner;
-//    }
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        ContentProperties contentProperties = applicationContext.getBean(ContentProperties.class);
+        String locationPrefix = contentProperties.getLocationPrefix();
 
-    @Bean
-    public ResourceProperties resourceProperties(ResourceProperties resourceProperties, ContentProperties contentProperties) {
-        List<String> staticLocations = new ArrayList<>(Arrays.asList(resourceProperties.getStaticLocations()));
-        staticLocations.add(0,"file:" + contentProperties.toString());
-        resourceProperties.setStaticLocations(staticLocations.toArray(new String[] {}));
-
-        return resourceProperties;
+        if (!locationPrefix.endsWith("/")) {
+            locationPrefix += "/";
+        }
+        registry
+            .addResourceHandler("/**")
+            .addResourceLocations(locationPrefix);
     }
 
     @Bean

@@ -2,8 +2,8 @@ package biz.grundner.springframework.web.content;
 
 import biz.grundner.springframework.web.content.model.Fragment;
 import biz.grundner.springframework.web.content.model.Page;
+import biz.grundner.springframework.web.content.model.Payload;
 import biz.grundner.springframework.web.content.model.Text;
-import org.apache.commons.collections4.map.AbstractMapDecorator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,13 +11,13 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Stephan Grundner
  */
 @Service
 public class PageService {
-
 
     @Autowired
     private ContentProperties contentProperties;
@@ -27,10 +27,6 @@ public class PageService {
 
     @Autowired
     private PageLoader pageLoader;
-
-//    @Autowired
-//    private PageFileFilter pageFileFilter;
-
 
     public PageRepository getPageRepository() {
         return pageRepository;
@@ -48,48 +44,35 @@ public class PageService {
         return findPagesByType(type, limit, 0);
     }
 
-    public Map<String, Object> fromFragment(Fragment fragment) {
-        Map<String, Object> map = new LinkedHashMap<>();
-
-        fragment.getSequences().values().forEach(sequence -> {
-//            map.put("$name", sequence.getName());
-
-            sequence.getPayloads().forEach(payload -> {
-                if (payload instanceof Text) {
-//                    map.add(sequence.getName(), ((Text) payload).getValue());
-                    MapUtils.add(map, sequence.getName(), ((Text) payload).getValue());
-                } else {
-//                    map.add(sequence.getName(), fromFragment((Fragment) payload));
-                    Map<String, Object> x = fromFragment((Fragment) payload);
-                    x.put("$name", sequence.getName());
-                    x.put("$parent", new AbstractMapDecorator(map) {
-                        @Override
-                        public String toString() {
-                            return map.getClass().getName() + "@" + System.identityHashCode(map);
-                        }
-                    });
-                    MapUtils.add(map, sequence.getName(), x);
-
-
-                }
-            });
-
-            Object j = map.get(sequence.getName());
-            map.put("$children", j);
-        });
-
-        return map;
-    }
-
-    public Object toModel(Page page) {
-        return fromFragment(page);
-    }
-
     public String toString(Page page) {
         return String.format("%s{type=%s,file=\"%s\"}@%d",
                 Page.class.getName(),
                 page.getType(),
                 page.getResource().toString(),
                 System.identityHashCode(page));
+    }
+
+    public Map<String, Object> toModel(Payload payload) {
+        Map<String, Object> model = new LinkedHashMap<>();
+
+        if (payload instanceof Fragment) {
+            Fragment fragment = (Fragment) payload;
+            fragment.getSequences().forEach((name, sequence) -> {
+                model.put(name, sequence.getPayloads().stream()
+                        .map(this::toModel)
+                        .collect(Collectors.toList()));
+            });
+        } else {
+            Text text = (Text) payload;
+            model.put("$text", text.getValue());
+        }
+
+        model.put("$payload", payload);
+
+        return model;
+    }
+
+    public void reload() throws IOException {
+        pageRepository.reload();
     }
 }

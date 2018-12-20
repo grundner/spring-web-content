@@ -1,14 +1,13 @@
 package biz.grundner.springframework.web.content;
 
-import biz.grundner.springframework.web.content.io.ResourceLocationUtils;
 import biz.grundner.springframework.web.content.model.Page;
+import biz.grundner.springframework.web.content.util.ResourceLocationUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.util.AntPathMatcher;
 
 import java.io.IOException;
@@ -25,11 +24,11 @@ public class PageRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(PageRepository.class);
 
-    @Autowired
-    private PageLoader pageLoader;
-
     private String locationPrefix;
     private String locationSuffix;
+
+    @Autowired
+    private PageLoader pageLoader;
 
     @Autowired
     private ResourcePatternResolver resourceLoader;
@@ -56,10 +55,6 @@ public class PageRepository {
         this.locationSuffix = locationSuffix;
     }
 
-    public Collection<Page> findAllPages() {
-        return Collections.unmodifiableCollection(pages);
-    }
-
     private String getLocationPattern() {
         AntPathMatcher pathMatcher = new AntPathMatcher();
         String normalizedLocationPrefix = ResourceLocationUtils.normalizeLocation(locationPrefix);
@@ -67,16 +62,12 @@ public class PageRepository {
     }
 
     private String resolvePath(Resource resource) {
-        String normalizedLocationPrefix =  ResourceLocationUtils.normalizeLocation(locationPrefix);
+        String normalizedLocationPrefix = ResourceLocationUtils.normalizeLocation(locationPrefix);
         Resource root = resourceLoader.getResource(normalizedLocationPrefix);
 
-        String path;
-
-        String resourceLocation = ResourceLocationUtils.getLocation(resource);
-        String rootLocation = ResourceLocationUtils.getLocation(root);
-        path = StringUtils.removeStart(
-                resourceLocation,
-                rootLocation);
+        String path = StringUtils.removeStart(
+                ResourceLocationUtils.getLocation(resource),
+                ResourceLocationUtils.getLocation(root));
 
         path = StringUtils.removeEnd(path, locationSuffix);
 
@@ -97,8 +88,7 @@ public class PageRepository {
                 .collect(Collectors.toList());
     }
 
-    @Scheduled(fixedDelay = 1000 * 10)
-    public void refresh() throws IOException {
+    public void reload() throws IOException {
         pages.clear();
 
         String locationPattern = getLocationPattern();
@@ -108,5 +98,7 @@ public class PageRepository {
 
             pages.add(page);
         }
+
+        LOG.info("Loaded {} pages for pattern {}", pages.size(), locationPattern);
     }
 }
